@@ -9,6 +9,7 @@ from mock import mock
 import httpretty
 from adsmsg import TurboBeeMsg
 import datetime as dt
+from StringIO import StringIO
 
 class TestServices(TestCase):
     '''Tests that each route is an http response'''
@@ -52,13 +53,7 @@ class TestServices(TestCase):
         msg = TurboBeeMsg()
         msg.created = msg.get_timestamp(dt.datetime.utcnow())
         msg.set_value('hello world')
-        # my_data = { 'file_field': (msg, 'turbobee_msg.proto') }
-        my_data = {
-            'q': '*:*',
-            'fl': 'bibcode',
-            'fq': '{!bitset}',
-            'file_field': (msg, 'turbobee_msg.proto')
-        }
+        my_data = {'msg': (StringIO(msg.dump()), 'turbobee_msg.proto') }
 
         r = self.client.post(
             url_for('turbobee_app.store', bibcode='asdf'), 

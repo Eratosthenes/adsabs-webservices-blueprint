@@ -31,6 +31,7 @@ def store(bibcode):
     if request.method == 'GET':
         return bibcode
     else:
+        msg = request.files['msg'].read()
         pdb.set_trace()
         return 'hello'
             
