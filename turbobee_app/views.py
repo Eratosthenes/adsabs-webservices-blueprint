@@ -1,7 +1,8 @@
 import pdb
-from flask import url_for, current_app, request, Blueprint, jsonify
+from flask import url_for, current_app, request, Blueprint, jsonify, abort
 from flask_discoverer import advertise
 from adsmsg import TurboBeeMsg
+from models import Pages
 
 bp = Blueprint('turbobee_app', __name__)
 
@@ -30,7 +31,13 @@ def api_usage():
 @bp.route('/store/<string:bibcode>', methods=['GET', 'POST'])
 def store(bibcode):
     if request.method == 'GET':
-        return bibcode
+        try:
+            print 'bibcode =',bibcode
+            page = current_app.db.session.query(Pages).filter_by(qid=bibcode).first() 
+            print 'page =',page
+            return page.content
+        except:
+            return abort(404)
     else:
         req_file = request.files['file_field'].read()
         msg = TurboBeeMsg.loads('adsmsg.turbobee.TurboBeeMsg', req_file)
