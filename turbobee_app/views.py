@@ -41,14 +41,13 @@ def store(bibcode):
     else:
         req_file = request.files['file_field'].read()
         msg = TurboBeeMsg.loads('adsmsg.turbobee.TurboBeeMsg', req_file)
-        pdb.set_trace()
 
         ts = msg.get_timestamp()
         created = dt.datetime.fromtimestamp(ts.seconds + ts.nanos * 10**-9) 
         qid = hashlib.sha256(str(msg)).hexdigest()
         page = Pages(qid=qid, created=created, content=msg.get_value())
         current_app.db.session.add(page)
-        current_app.db.session.commit(page)
+        current_app.db.session.commit()
 
         return str(msg)
             
