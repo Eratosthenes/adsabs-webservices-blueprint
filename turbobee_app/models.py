@@ -28,8 +28,8 @@ class Pages(Base):
             'qid': self.qid,
             'content_type': self.content_type,
             'content': self.content,
-            'created': self.created,
-            'updated': self.updated,
-            'expires': self.expires,
-            'lifetime': self.lifetime
+            'created': self.created.isoformat(),
+            'updated': self.updated.isoformat(),
+            'expires': self.expires.isoformat(),
+            'lifetime': self.lifetime.isoformat()
         }

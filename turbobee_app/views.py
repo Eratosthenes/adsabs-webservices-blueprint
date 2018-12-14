@@ -1,6 +1,7 @@
 import pdb
 from flask import url_for, current_app, request, Blueprint, jsonify
 from flask_discoverer import advertise
+from adsmsg import TurboBeeMsg
 
 bp = Blueprint('turbobee_app', __name__)
 
@@ -31,9 +32,9 @@ def store(bibcode):
     if request.method == 'GET':
         return bibcode
     else:
-        msg = request.files['msg'].read()
-        pdb.set_trace()
-        return 'hello'
+        req_file = request.files['file_field'].read()
+        msg = TurboBeeMsg.loads('adsmsg.turbobee.TurboBeeMsg', req_file)
+        return str(msg)
             
 @bp.route('/store/search', methods=['GET'])
 def search():
