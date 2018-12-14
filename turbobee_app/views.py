@@ -3,6 +3,8 @@ from flask import url_for, current_app, request, Blueprint, jsonify, abort
 from flask_discoverer import advertise
 from adsmsg import TurboBeeMsg
 from models import Pages
+import datetime as dt
+import hashlib
 
 bp = Blueprint('turbobee_app', __name__)
 
@@ -32,15 +34,22 @@ def api_usage():
 def store(bibcode):
     if request.method == 'GET':
         try:
-            print 'bibcode =',bibcode
             page = current_app.db.session.query(Pages).filter_by(qid=bibcode).first() 
-            print 'page =',page
             return page.content
         except:
             return abort(404)
     else:
         req_file = request.files['file_field'].read()
         msg = TurboBeeMsg.loads('adsmsg.turbobee.TurboBeeMsg', req_file)
+        pdb.set_trace()
+
+        ts = msg.get_timestamp()
+        created = dt.datetime.fromtimestamp(ts.seconds + ts.nanos * 10**-9) 
+        qid = hashlib.sha256(str(msg)).hexdigest()
+        page = Pages(qid=qid, created=created, content=msg.get_value())
+        current_app.db.session.add(page)
+        current_app.db.session.commit(page)
+
         return str(msg)
             
 @bp.route('/store/search', methods=['GET'])
