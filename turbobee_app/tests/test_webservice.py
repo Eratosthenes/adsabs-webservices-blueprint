@@ -74,6 +74,10 @@ class TestServices(TestCase):
 
         self.assertEqual(r.status_code, 200)
 
+    def test_proto_delete(self):
+        r = self.client.delete(url_for('turbobee_app.store', bibcode='wxyz'))
+        self.assertEqual(r.status_code, 200)
+
     def test_proto_get(self):
         page = Pages(qid='wxyz', content='hi')
         self.app.db.session.add(page)

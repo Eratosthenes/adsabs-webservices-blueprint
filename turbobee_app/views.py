@@ -31,7 +31,7 @@ def api_usage():
     r = current_app.client.get(current_app.config.get('SAMPLE_URL'))
     return r.json()
 
-@bp.route('/store/<string:bibcode>', methods=['GET', 'POST'])
+@bp.route('/store/<string:bibcode>', methods=['GET', 'POST', 'DELETE'])
 def store(bibcode):
     with current_app.session_scope() as session:
         if request.method == 'GET':
@@ -40,7 +40,7 @@ def store(bibcode):
                 return page.content
             except:
                 return abort(404)
-        else: # POST
+        elif request.method == 'POST':
             req_file = request.files['file_field'].read()
             msg = TurboBeeMsg.loads('adsmsg.turbobee.TurboBeeMsg', req_file)
 
@@ -64,7 +64,19 @@ def store(bibcode):
             session.close()
 
             return str(msg), 200
-            
+        elif request.method == 'DELETE':
+            try:
+                session.query(Pages).filter_by(qid=bibcode).delete()
+            except:
+                return abort(404)
+            try:
+                session.commit()
+            except exc.IntegrityError as e:
+                session.rollback()
+
+            session.close()
+            return 'deleted', 200
+           
 @bp.route('/store/search', methods=['GET'])
 def search():
     
