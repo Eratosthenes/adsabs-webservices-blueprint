@@ -1,5 +1,6 @@
 import pdb
 from flask import url_for, current_app, request, Blueprint, jsonify, abort
+from flask import json
 from flask_discoverer import advertise
 from adsmsg import TurboBeeMsg
 from models import Pages
@@ -85,12 +86,30 @@ def store(bibcode):
 
             session.close()
             return 'deleted', 200
+
+# convert datestring s to datetime object
+def str_to_dt(s):
+    return dt.datetime.strptime(s, '%Y-%m-%d %H:%M:%S.%f')
            
 @bp.route('/store/search', methods=['GET'])
 def search():
-    
-    if request.method == 'GET':
-        return jsonify({'date': current_app.get_date(date)}), 200
-    elif request.method == 'POST':
-        return jsonify({'date': current_app.get_date(date)}), 200
+
+    keys = request.args.keys()
+    with current_app.session_scope() as session:
+
+        if 'begin' in keys and 'end' in keys:
+            begin = str_to_dt(request.args['begin'])
+            end = str_to_dt(request.args['end'])
+            try:
+                pages = session.query(Pages).filter(Pages.created.between(begin, end)).all()
+                result = json.dumps(map(lambda page: page.toJSON(), pages))
+                return result, 200
+            except:
+                return abort(404)
+
+    return 200
             
+
+
+
+

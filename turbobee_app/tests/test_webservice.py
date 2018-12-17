@@ -84,6 +84,22 @@ class TestServices(TestCase):
         r = self.client.delete(url_for('turbobee_app.store', bibcode='does_not_exist'))
         self.assertEqual(r.status_code, 404)
 
+    # search for pages within timestamp range, when pages exist
+    def test_search_get_range(self):
+        page = Pages(qid='wxyz', content='hi')
+        page2 = Pages(qid='wxyz2', content='hi 2')
+        self.app.db.session.add(page)
+        self.app.db.session.add(page2)
+        self.app.db.session.commit()
+
+        begin = dt.datetime.utcnow() - dt.timedelta(days=30)
+        end = dt.datetime.utcnow() + dt.timedelta(days=30)
+
+        r = self.client.get(
+            url_for('turbobee_app.search', begin=begin, end=end))
+
+        self.assertEqual(r.status_code, 200)
+
     # get a page that exists
     def test_proto_get(self):
         page = Pages(qid='wxyz', content='hi')
@@ -100,6 +116,8 @@ class TestServices(TestCase):
             url_for('turbobee_app.store', bibcode='does_not_exist'))
 
         self.assertEqual(r.status_code, 404)
+
+
         
 if __name__ == '__main__':
   unittest.main()
