@@ -95,17 +95,29 @@ def str_to_dt(s):
 def search():
 
     keys = request.args.keys()
+    rows = int(request.args.get('rows') or 50) # default max rows of 50 for now
     with current_app.session_scope() as session:
 
         if 'begin' in keys and 'end' in keys:
             begin = str_to_dt(request.args['begin'])
             end = str_to_dt(request.args['end'])
-            try:
-                pages = session.query(Pages).filter(Pages.created.between(begin, end)).all()
-                result = json.dumps(map(lambda page: page.toJSON(), pages))
-                return result, 200
-            except:
-                return abort(404)
+            pages = session.query(Pages).filter(Pages.created.between(begin, end)).all()
+        elif 'begin' in keys: # search for all records after begin
+            begin = str_to_dt(request.args['begin'])
+            pages = session.query(Pages).filter(Pages.created >= begin).all()
+        elif 'end' in keys: # search for all records before end
+            end = str_to_dt(request.args['end'])
+            pages = session.query(Pages).filter(Pages.created <= end).all()
+        elif 'at' in keys: # search for all records created at specific timestamp
+            at = str_to_dt(request.args['at'])
+            pages = session.query(Pages).filter(Pages.created == at).all()
+
+        try:
+            pages = sorted(pages, key=lambda x:x.created)[:rows]
+            result = json.dumps(map(lambda page: page.toJSON(), pages))
+            return result, 200
+        except:
+            return abort(404)
 
     return 200
             

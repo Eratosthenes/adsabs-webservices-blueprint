@@ -84,6 +84,20 @@ class TestServices(TestCase):
         r = self.client.delete(url_for('turbobee_app.store', bibcode='does_not_exist'))
         self.assertEqual(r.status_code, 404)
 
+    # search for pages with specified timestamp
+    def test_search_get_range_at(self):
+        at = dt.datetime.utcnow()
+
+        page = Pages(qid='wxyz', content='hi', created=at)
+        self.app.db.session.add(page)
+        self.app.db.session.commit()
+
+
+        r = self.client.get(
+            url_for('turbobee_app.search', at=at))
+
+        self.assertEqual(r.status_code, 200)
+
     # search for pages within timestamp range, when pages exist
     def test_search_get_range(self):
         page = Pages(qid='wxyz', content='hi')
@@ -97,6 +111,22 @@ class TestServices(TestCase):
 
         r = self.client.get(
             url_for('turbobee_app.search', begin=begin, end=end))
+
+        self.assertEqual(r.status_code, 200)
+
+    # search for pages within timestamp range, when pages exist, with rows
+    def test_search_get_range_rows(self):
+        page = Pages(qid='wxyz', content='hi')
+        page2 = Pages(qid='wxyz2', content='hi 2')
+        self.app.db.session.add(page)
+        self.app.db.session.add(page2)
+        self.app.db.session.commit()
+
+        begin = dt.datetime.utcnow() - dt.timedelta(days=30)
+        end = dt.datetime.utcnow() + dt.timedelta(days=30)
+
+        r = self.client.get(
+            url_for('turbobee_app.search', begin=begin, end=end, rows=1))
 
         self.assertEqual(r.status_code, 200)
 
