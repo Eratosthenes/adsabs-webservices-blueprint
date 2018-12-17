@@ -1,7 +1,7 @@
 from flask_testing import TestCase
 from flask import url_for, request
 import unittest
-from models import Base
+from models import Base, Pages
 import app
 import json
 import os
@@ -73,6 +73,16 @@ class TestServices(TestCase):
             data=my_data)
 
         self.assertEqual(r.status_code, 200)
+
+    def test_proto_get(self):
+        page = Pages(qid='wxyz', content='hi')
+        self.app.db.session.add(page)
+        self.app.db.session.commit()
+        r = self.client.get(
+            url_for('turbobee_app.store', bibcode='wxyz'))
+
+        self.assertEqual(r.status_code, 200)
+
         
 if __name__ == '__main__':
   unittest.main()

@@ -33,28 +33,28 @@ def api_usage():
 
 @bp.route('/store/<string:bibcode>', methods=['GET', 'POST'])
 def store(bibcode):
-    if request.method == 'GET':
-        try:
-            page = current_app.db.session.query(Pages).filter_by(qid=bibcode).first() 
-            return page.content
-        except:
-            return abort(404)
-    else: # POST
-        req_file = request.files['file_field'].read()
-        msg = TurboBeeMsg.loads('adsmsg.turbobee.TurboBeeMsg', req_file)
+    with current_app.session_scope() as session:
+        if request.method == 'GET':
+            try:
+                page = session.query(Pages).filter_by(qid=bibcode).first() 
+                return page.content
+            except:
+                return abort(404)
+        else: # POST
+            req_file = request.files['file_field'].read()
+            msg = TurboBeeMsg.loads('adsmsg.turbobee.TurboBeeMsg', req_file)
 
-        page_d = {}
-        page_d['qid'] = hashlib.sha256(str(msg)).hexdigest()
-        ts = msg.get_timestamp()
-        page_d['created'] = dt.datetime.fromtimestamp(ts.seconds + ts.nanos * 10**-9) 
-        page_d['content'] = msg.get_value()
-        page_d['content_type'] = 0 # [] need to read from TurboBeeMsg
-        page_d['updated'] = page_d['created']
-        page_d['expires'] = page_d['created'] + dt.timedelta(days=365)
-        page_d['lifetime'] = page_d['created'] + dt.timedelta(days=365*100)
-        page = Pages(**page_d)
+            page_d = {}
+            page_d['qid'] = hashlib.sha256(str(msg)).hexdigest()
+            ts = msg.get_timestamp()
+            page_d['created'] = dt.datetime.fromtimestamp(ts.seconds + ts.nanos * 10**-9) 
+            page_d['content'] = msg.get_value()
+            page_d['content_type'] = 0 # [] need to read from TurboBeeMsg
+            page_d['updated'] = page_d['created']
+            page_d['expires'] = page_d['created'] + dt.timedelta(days=365)
+            page_d['lifetime'] = page_d['created'] + dt.timedelta(days=365*100)
+            page = Pages(**page_d)
 
-        with current_app.session_scope() as session:
             try:
                 session.add(page)
                 session.commit()
@@ -63,7 +63,7 @@ def store(bibcode):
 
             session.close()
 
-        return str(msg), 200
+            return str(msg), 200
             
 @bp.route('/store/search', methods=['GET'])
 def search():
