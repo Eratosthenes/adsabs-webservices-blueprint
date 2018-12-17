@@ -50,10 +50,21 @@ class TestServices(TestCase):
         self.assertEqual(r.status_code,200)
         assert 'date' in r.json
 
-    def test_proto(self):
+    def test_proto_msg(self):
         msg = TurboBeeMsg()
         msg.created = msg.get_timestamp(dt.datetime.utcnow())
         msg.set_value('hello world')
+        my_data = {'file_field': (StringIO(msg.dump()[1]), 'turbobee_msg.proto') }
+
+        r = self.client.post(
+            url_for('turbobee_app.store', bibcode='asdf'), 
+            content_type='multipart/form-data',
+            data=my_data)
+
+        self.assertEqual(r.status_code, 200)
+
+    def test_proto_empty(self):
+        msg = TurboBeeMsg()
         my_data = {'file_field': (StringIO(msg.dump()[1]), 'turbobee_msg.proto') }
 
         r = self.client.post(

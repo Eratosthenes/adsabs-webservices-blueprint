@@ -38,14 +38,22 @@ def store(bibcode):
             return page.content
         except:
             return abort(404)
-    else:
+    else: # POST
         req_file = request.files['file_field'].read()
         msg = TurboBeeMsg.loads('adsmsg.turbobee.TurboBeeMsg', req_file)
 
+        page_d = {}
+        page_d['qid'] = hashlib.sha256(str(msg)).hexdigest()
         ts = msg.get_timestamp()
-        created = dt.datetime.fromtimestamp(ts.seconds + ts.nanos * 10**-9) 
-        qid = hashlib.sha256(str(msg)).hexdigest()
-        page = Pages(qid=qid, created=created, content=msg.get_value())
+        page_d['created'] = dt.datetime.fromtimestamp(ts.seconds + ts.nanos * 10**-9) 
+        page_d['content'] = msg.get_value()
+        page_d['content_type'] = 0 # [] need to read from TurboBeeMsg
+        page_d['updated'] = page_d['created']
+        page_d['expires'] = page_d['created'] + dt.timedelta(days=365)
+        page_d['lifetime'] = page_d['created'] + dt.timedelta(days=365*100)
+
+        page = Pages(**page_d)
+        # [] add try/except
         current_app.db.session.add(page)
         current_app.db.session.commit()
 
