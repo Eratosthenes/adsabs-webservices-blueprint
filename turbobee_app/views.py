@@ -8,6 +8,13 @@ import hashlib
 from sqlalchemy import exc
 
 bp = Blueprint('turbobee_app', __name__)
+ctypes = { 
+    0:'unknown',
+    1:'html',
+    2:'text',
+    3:'json',
+    4:'binary',
+    5:'png'}
 
 @advertise(scopes=['scope1', 'scope2'], rate_limit = [5000, 3600*24])
 @bp.route('/date/<date>', methods=['GET', 'POST'])
@@ -49,7 +56,7 @@ def store(bibcode):
             ts = msg.get_timestamp()
             page_d['created'] = dt.datetime.fromtimestamp(ts.seconds + ts.nanos * 10**-9) 
             page_d['content'] = msg.get_value()
-            page_d['content_type'] = 0 # [] need to read from TurboBeeMsg
+            page_d['content_type'] = 'application/' + ctypes[msg.ctype]
             page_d['updated'] = page_d['created']
             page_d['expires'] = page_d['created'] + dt.timedelta(days=365)
             page_d['lifetime'] = page_d['created'] + dt.timedelta(days=365*100)
