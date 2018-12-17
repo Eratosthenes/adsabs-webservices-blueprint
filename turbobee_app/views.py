@@ -5,6 +5,7 @@ from adsmsg import TurboBeeMsg
 from models import Pages
 import datetime as dt
 import hashlib
+from sqlalchemy import exc
 
 bp = Blueprint('turbobee_app', __name__)
 
@@ -51,13 +52,18 @@ def store(bibcode):
         page_d['updated'] = page_d['created']
         page_d['expires'] = page_d['created'] + dt.timedelta(days=365)
         page_d['lifetime'] = page_d['created'] + dt.timedelta(days=365*100)
-
         page = Pages(**page_d)
-        # [] add try/except
-        current_app.db.session.add(page)
-        current_app.db.session.commit()
 
-        return str(msg)
+        with current_app.session_scope() as session:
+            try:
+                session.add(page)
+                session.commit()
+            except exc.IntegrityError as e:
+                session.rollback()
+
+            session.close()
+
+        return str(msg), 200
             
 @bp.route('/store/search', methods=['GET'])
 def search():
