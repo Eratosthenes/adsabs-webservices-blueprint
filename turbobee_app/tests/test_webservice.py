@@ -74,10 +74,17 @@ class TestServices(TestCase):
 
         self.assertEqual(r.status_code, 200)
 
+    # delete an existing page
     def test_proto_delete(self):
         r = self.client.delete(url_for('turbobee_app.store', bibcode='wxyz'))
         self.assertEqual(r.status_code, 200)
 
+    # delete a page that does not exist
+    def test_proto_delete(self):
+        r = self.client.delete(url_for('turbobee_app.store', bibcode='does_not_exist'))
+        self.assertEqual(r.status_code, 404)
+
+    # get a page that exists
     def test_proto_get(self):
         page = Pages(qid='wxyz', content='hi')
         self.app.db.session.add(page)
@@ -87,6 +94,12 @@ class TestServices(TestCase):
 
         self.assertEqual(r.status_code, 200)
 
+    # get a page that doesn't exist
+    def test_proto_get_dne(self):
+        r = self.client.get(
+            url_for('turbobee_app.store', bibcode='does_not_exist'))
+
+        self.assertEqual(r.status_code, 404)
         
 if __name__ == '__main__':
   unittest.main()

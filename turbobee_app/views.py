@@ -66,7 +66,9 @@ def store(bibcode):
             return str(msg), 200
         elif request.method == 'DELETE':
             try:
-                session.query(Pages).filter_by(qid=bibcode).delete()
+                pages = session.query(Pages).filter_by(qid=bibcode)
+                pages.first().toJSON() # test whether any page was found
+                pages.delete()
             except:
                 return abort(404)
             try:
