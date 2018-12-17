@@ -61,6 +61,7 @@ def store(bibcode):
             page_d['updated'] = page_d['created']
             page_d['expires'] = page_d['created'] + dt.timedelta(days=365)
             page_d['lifetime'] = page_d['created'] + dt.timedelta(days=365*100)
+
             page = Pages(**page_d)
 
             try:
@@ -95,7 +96,9 @@ def str_to_dt(s):
 def search():
 
     keys = request.args.keys()
-    rows = int(request.args.get('rows') or 50) # default max rows of 50 for now
+
+    # default is 50, max is 100
+    rows = min(100, int(request.args.get('rows') or 50)) 
     with current_app.session_scope() as session:
 
         if 'begin' in keys and 'end' in keys:
