@@ -33,3 +33,20 @@ class Pages(Base):
             'expires': self.expires.isoformat(),
             'lifetime': self.lifetime.isoformat()
         }
+
+
+class Records(Base):
+    __tablename__ = 'records'
+    id = sa.Column(sa.Integer, primary_key=True, nullable=False)
+    bibcode = sa.Column(sa.String(255), nullable=False)
+    bib_data = sa.Column(sa.String(255), nullable=True)
+
+    def toJSON(self):
+        """Returns value formatted as python dict. Oftentimes
+        very useful for simple operations"""
+        
+        return {
+            'id': self.id,
+            'bibcode': self.bibcode,
+            'bib_data': self.bib_data
+        }
