@@ -54,7 +54,8 @@ def store(bibcode):
 
             page_d = {}
             page_d['content'] = str(msg.get_value())
-            page_d['qid'] = hashlib.sha256(page_d['content']).hexdigest()
+            page_d['qid'] = hashlib.sha256(msg.qid).hexdigest() if msg.qid != '' \
+                else hashlib.sha256(page_d['content']).hexdigest()
             ts = msg.get_timestamp()
             page_d['created'] = dt.datetime.fromtimestamp(ts.seconds + ts.nanos * 10**-9) 
             page_d['content_type'] = 'application/' + ctypes[msg.ctype]
